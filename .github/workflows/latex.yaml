@@ -6,6 +6,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
     - name: Checkout repository
@@ -15,10 +16,10 @@ jobs:
       uses: dante-ev/latex-action@latest
 
     - name: Compile LaTeX document
-      run: latexmk -pdf -silent Implementation.tex
+      run: latexmk -pdf -silent Implementation_Details.tex
 
     - name: Upload PDF
       uses: actions/upload-artifact@v2
       with:
         name: compiled-pdf
-        path: Implementation.pdf
+        path: Implementation_Details.pdf
