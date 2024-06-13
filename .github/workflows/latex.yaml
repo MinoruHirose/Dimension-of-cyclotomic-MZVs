@@ -1,0 +1,24 @@
+on:
+  push:
+    branches:
+      - main
+      
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up LaTeX environment
+      uses: dante-ev/latex-action@v2
+
+    - name: Compile LaTeX document
+      run: latexmk -pdf -silent Implementation.tex
+
+    - name: Upload PDF
+      uses: actions/upload-artifact@v2
+      with:
+        name: compiled-pdf
+        path: Implementation.pdf
