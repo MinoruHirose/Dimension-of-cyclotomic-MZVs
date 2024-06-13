@@ -1,0 +1,141 @@
+
+\documentclass[oneside,reqno]{amsart}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,tmargin=3.5cm,bmargin=3.5cm,lmargin=2.5cm,rmargin=2.5cm}
+\usepackage{enumitem}
+\usepackage{bm}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+
+\makeatletter
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Textclass specific LaTeX commands.
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\newlength{\lyxlabelwidth}      % auxiliary length
+\theoremstyle{plain}
+\newtheorem{thm}{\protect\theoremname}
+\theoremstyle{definition}
+\newtheorem{defn}[thm]{\protect\definitionname}
+\theoremstyle{plain}
+\newtheorem{prop}[thm]{\protect\propositionname}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+\usepackage{shuffle}
+
+
+\providecommand{\definitionname}{Definition}
+\providecommand{\propositionname}{Proposition}
+\providecommand{\theoremname}{Theorem}
+
+\begin{document}
+\title{Implementation details}
+
+\maketitle
+%
+\global\long\def\biseq#1#2{\left\llbracket \begin{array}{c}
+#1\\
+#2
+\end{array}\right\rrbracket }%
+\global\long\def\biseqp#1#2{\left\llbracket \begin{array}{c}
+#1\\
+#2
+\end{array}\right\rrbracket _{p}}%
+
+
+\subsection{Notation}
+\begin{itemize}
+\item For the tuple $\bm{a}=(a_{1},\dots,a_{m})$ and $\bm{b}=(b_{1},\dots,b_{n})$,
+the concatenation $(a_{1},\dots,a_{m},b_{1},\dots,b_{n})$ is denoted
+by $\bm{a}\cdot\bm{b}$.
+\item Fix an positive integer $N$.
+\end{itemize}
+
+\subsection{The set $X^{\otimes d}$}
+
+Let $\mathsf{X}_{d}$ be the set of the formal sum of tuples $(u_{1},\dots,u_{d},l_{1},\dots,l_{d})\in\{0,1,\dots,N-1\}^{d}\times\mathbb{Z}_{\geq0}^{d}$.
+We identify $X^{\otimes d}$ and $\mathsf{X}_{d}$ by
+
+\[
+\biseq{\zeta_{N}^{u_{1}},\dots,\zeta_{N}^{u_{d}}}{l_{1},\dots,l_{d}}\mapsto(u_{1},\dots,u_{d},l_{1},\dots,l_{d}).
+\]
+
+
+\subsection{The map $D_{d}^{\mathrm{iter}}$}
+\begin{defn}
+The map
+\[
+\mathsf{push}:\mathbb{Z}_{\geq0}^{d}\times\{0,\dots,d-2\}\times\mathbb{Z}_{\geq0}\to\mathbb{Z}_{\geq0}^{d}
+\]
+ is defined by
+\[
+\mathsf{push}((l_{1},\dots,l_{d}),i,r)=(l_{1},\dots,l_{i},l_{i+1}+l_{i+2}-r,l_{i+3},\dots,l_{d})
+\]
+for $i\geq0$.
+\end{defn}
+
+\begin{defn}
+The map
+\[
+\mathsf{Diterpre}:(\mathbb{Z}/N\mathbb{Z})^{e}\times\mathbb{Z}_{\geq0}^{e}\times(\mathbb{Z}/N\mathbb{Z})^{d}\times\mathbb{Z}_{\geq0}^{d}\to\mathsf{X}_{d}
+\]
+is defined by
+\begin{align*}
+ & \mathsf{Diterpre}(\bm{v}=(v_{1},\dots,v_{e}),\bm{m}=(m_{1},\dots,m_{e}),\bm{u}=(u_{1},\dots,u_{d}),\bm{l}=(l_{1},\dots,l_{d}))\\
+ & =\mathsf{Diterpre}(\bm{v}\cdot(u_{1}-u_{2}),\bm{m}\cdot(l_{1}),(u_{2},\dots,u_{d}),(l_{2},\dots,l_{d}))\\
+ & \quad+\sum_{i=2}^{d-1}\sum_{r=l_{i}}^{l_{i-1}+l_{i}}(-1)^{r-l_{i}}\binom{r}{l_{i}}\mathsf{Diterpre}(\bm{v}\cdot(u_{i}-u_{i+1}),\bm{m}\cdot(r),(u_{1},\dots,u_{i-1},u_{i+1},\dots,u_{d}),\mathsf{push}(\bm{l},i-2,r))\\
+ & \quad-\sum_{i=1}^{d-1}\sum_{r=l_{i}}^{l_{i}+l_{i+1}}(-1)^{l_{i}}\binom{r}{l_{i}}\mathsf{Diterpre}(\bm{v}\cdot(u_{i+1}-u_{i}),\bm{m}\cdot(r),(u_{1},\dots,u_{i},u_{i+2},\dots,u_{d}),\mathsf{push}(\bm{l},i-1,r))\\
+ & \quad+\sum_{r=l_{d}}^{l_{d-1}+l_{d}}(-1)^{r-l_{d}}\binom{r}{l_{d}}\mathsf{Diterpre}(\bm{v}\cdot(u_{d}),\bm{m}\cdot(r),(u_{1},\dots,u_{d-1}),\mathsf{push}(\bm{l},d-2,r)).
+\end{align*}
+for $d\geq2$ and
+\[
+\mathsf{Diterpre}((v_{1},\dots,v_{e}),(m_{1},\dots,m_{e}),(u),(l))=(v_{1},\dots,v_{e},u,m_{1},\dots,m_{e},l).
+\]
+\end{defn}
+
+\begin{defn}
+The map
+\[
+\mathsf{Diter}:(\mathbb{Z}/N\mathbb{Z})^{d}\times\mathbb{Z}_{\geq0}^{d}\to\mathsf{X}_{d}
+\]
+is defined by
+\[
+\mathsf{Diter}(\bm{u},\bm{l})=\mathsf{Diterpre}((),(),\bm{u},\bm{l}).
+\]
+\end{defn}
+
+\begin{prop}
+Under the identification $X^{\otimes d}\simeq\mathsf{X}_{d}$, $D_{d}^{\mathrm{iter}}((\bm{u},\bm{l}))\in Y^{\otimes d}$
+coincides with the image of $\mathsf{Diter}(\bm{u},\bm{l})\in X^{\otimes d}$
+in $Y^{\otimes d}$.
+\end{prop}
+
+
+\subsection{The kernel $X^{\otimes d}\to Y^{\otimes d}$}
+\begin{prop}
+Under the identification $X^{\otimes d}\simeq\mathsf{X}_{d}$, the
+kernel of $X^{\otimes d}\to Y^{\otimes d}$ is spanned by the following
+elements:
+\begin{itemize}
+\item $(u_{1},\dots,u_{d},l_{1},\dots,l_{d})$ for $u_{1},\dots,u_{d}\in\{0,\dots,N-1\}^{d}$
+and $l_{1},\dots,l_{d}\in\mathbb{Z}_{\geq0}$ with $(u_{i},l_{i})=(0,0)$
+for some $i$.
+\item $(u_{1},\dots,u_{d},l_{1},\dots,l_{d})-(-1)^{l_{i}}(u_{1},\dots,u_{i-1},-u_{i},u_{i+1},\dots,u_{d},l_{1},\dots,l_{d})$
+for $u_{1},\dots,u_{d}\in\{0,\dots,N-1\}^{d}$, $l_{1},\dots,l_{d}\in\mathbb{Z}_{\geq0}$
+and $i\in\{1,\dots,d\}$
+\item $(u_{1},\dots,u_{d},l_{1},\dots,l_{d})-M^{l_{i}}\sum_{s=0}^{M-1}(u_{1},\dots,u_{i-1},u_{i}/M+sN/M,u_{i+1},\dots,u_{d},l_{1},\dots,l_{d})$
+for $u_{1},\dots,u_{d}\in\{0,\dots,N-1\}^{d}$, $l_{1},\dots,l_{d}\in\mathbb{Z}_{\geq0}$,
+$i\in\{1,\dots,d\}$ and divisor $M$ of $N$ with $u_{i}\equiv0\pmod{M}$
+and $(u_{i},l)\neq(0,0)$. (We can omit the caes $M=1$).
+\end{itemize}
+\end{prop}
+
+\begin{thebibliography}{1}
+\bibitem{key-2}M. Hirose, On the motivic fundamental group of the
+multiplicative group minus $N$-th roots of unity, in preparation.
+
+\end{thebibliography}
+
+\end{document}
