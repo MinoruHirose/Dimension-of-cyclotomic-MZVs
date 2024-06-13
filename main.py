@@ -11,7 +11,7 @@
 # For more information about SageMath and how to set up a Jupyter notebook with SageMath,
 # please visit: https://www.sagemath.org
 
-import sqlite3, time
+import sqlite3, time, os
 
 
 def Xd_element(us, ls):
@@ -158,7 +158,7 @@ def calc_dimension_of_the_space_quoted_by_vals(_N, depth, weight, vals, sparse =
     mat = matrix([ val_to_vector(val) for val in vals ], sparse = sparse)
     return mat.ncols() - mat.rank()
 
-def calc_dimension(_N, depth, weight, sparse = False):
+def calc_dimension(_N, depth, weight, sparse = True):
     global N
     N = _N
     assert depth<=weight
@@ -218,7 +218,7 @@ def calc_dimension_with_sqlite(N, depth, weight):
     else:
         # If data does not exist, calculate the dimension and update the database
         start_time = time.time()
-        dim = calc_dimension_quick(N, depth, weight)
+        dim = calc_dimension(N, depth, weight)
         used_time = time.time() - start_time
 
         cur.execute('''
@@ -274,8 +274,19 @@ def test2():
 
         print(N, dim_sparse)
 
-#make_sqlite_table()
-# test_harmonic_relation()
-test2()
-#test_Ydim()
+# pararrel computation
+@parallel(ncpus = 8)
+def f(N, depth, weight):
+    dim = calc_dimension_with_sqlite(N, depth, weight)
+    print(f"{depth=}, {weight=}, {N=}, {dim=}")
+    return dim
+
+def main():
+    start = time.time()
+    ins = [(N,2,2) for N in (224..1000)]
+    res = list(f(ins))
+    print(time.time()-start)
+
+
+main()
 print("Finish!")
