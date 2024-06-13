@@ -130,27 +130,7 @@ def generator_of_ker_to_Y(depth, weight, generate_inverse_formula= False):
                          - sum( Xd_element(replace(us, i, us[i]//M+s*N//M), ls) for s in (0..M-1)) )
     return ret
 
-
-def calc_dimension_of_the_space_quoted_by_vals(_N, depth, weight, vals):
-    N = _N
-    assert depth<=weight
-    assert N>=1
-    ind_from_us_ls = {}
-    for us in generate_all_us(N, depth):
-        for ls in generate_all_ls(depth, weight):
-            ind_from_us_ls[us+ls] = len(ind_from_us_ls)
-
-    def val_to_vector(val):
-        ret = [0 for _ in ind_from_us_ls]
-        for coeff, us_ls in val:
-            ret[ind_from_us_ls[us_ls]] += coeff
-        return vector(ret)
-
-    mat = matrix([ val_to_vector(val) for val in vals ])
-    return mat.ncols() - mat.rank()
-
-
-def calc_dimension_of_the_space_quoted_by_vals_quick(_N, depth, weight, vals, sparse = False):
+def calc_dimension_of_the_space_quoted_by_vals(_N, depth, weight, vals, sparse = True):
     N = _N
     assert depth<=weight
     assert N>=1
@@ -162,25 +142,7 @@ def calc_dimension_of_the_space_quoted_by_vals_quick(_N, depth, weight, vals, sp
             ind_from_us_ls[us+ls] = len(ind_from_us_ls)
 
     def val_to_vector(val):
-        if sparse:
-            ret = vector(ZZ, len(ind_from_us_ls), immutable=False, sparse = True)
-            for coeff, us_ls in val:
-                us,ls = list(us_ls[:depth]), list(us_ls[depth:])
-                if any( us[i]*2%N==0 and ls[i]%2==1 for i in range(depth) ):
-                    continue
-                for i in range(depth):
-                    if us[i]*2>N:
-                        us[i] = N - us[i]
-                        coeff *= (-1)**ls[i]
-                us_ls = tuple(us+ls)
-                ret[ind_from_us_ls[us_ls]] += coeff
-            return ret
-
-
-
-        
-        
-        ret = [0 for _ in ind_from_us_ls]
+        ret = vector(ZZ, len(ind_from_us_ls), immutable=False, sparse = sparse)
         for coeff, us_ls in val:
             us,ls = list(us_ls[:depth]), list(us_ls[depth:])
             if any( us[i]*2%N==0 and ls[i]%2==1 for i in range(depth) ):
@@ -191,30 +153,12 @@ def calc_dimension_of_the_space_quoted_by_vals_quick(_N, depth, weight, vals, sp
                     coeff *= (-1)**ls[i]
             us_ls = tuple(us+ls)
             ret[ind_from_us_ls[us_ls]] += coeff
-        return vector(ret)
+        return ret
 
     mat = matrix([ val_to_vector(val) for val in vals ], sparse = sparse)
-    print(f"{mat.parent()=}")
     return mat.ncols() - mat.rank()
 
-def calc_dimension(_N, depth, weight):
-    global N
-    N = _N
-    assert depth<=weight
-    assert N>=1
-
-    vals = []
-    # image of D_d_iter
-    for us in generate_all_us(N, depth):
-        for ls in generate_all_ls(depth, weight):
-            vals.append( Diter(us, ls) )
-    # generator of ker(Yd -> Xd)
-    for val in generator_of_ker_to_Y(depth, weight, generate_inverse_formula= True):
-        vals.append(val)
-    
-    return calc_dimension_of_the_space_quoted_by_vals(N, depth, weight, vals)
-
-def calc_dimension_quick(_N, depth, weight, sparse = False):
+def calc_dimension(_N, depth, weight, sparse = False):
     global N
     N = _N
     assert depth<=weight
@@ -231,7 +175,7 @@ def calc_dimension_quick(_N, depth, weight, sparse = False):
     # generator of ker(Yd -> Xd)
     for val in generator_of_ker_to_Y(depth, weight, generate_inverse_formula= False):
         vals.append(val)
-    return calc_dimension_of_the_space_quoted_by_vals_quick(N, depth, weight, vals, sparse)
+    return calc_dimension_of_the_space_quoted_by_vals(N, depth, weight, vals, sparse)
 
 def make_sqlite_table():
     conn = sqlite3.connect('dimensions.db')
@@ -314,73 +258,24 @@ def test_Ydim():
                 dim1 = calc_dimension_of_the_space_quoted_by_vals(_N=N, depth=depth, weight=weight, vals=vals)
                 dim2 = calc_dim_by_formula(N = N, depth = depth, weight = weight)
                 print(f"{depth=}, {weight=}, {N=}, {dim1=}, {dim2=}, {dim1==dim2}")
-                assert dim1==dim2
-
-def test_harmonic_relation():
-    # harmonic product with \zeta(k) with even k should be vanish
-    import random
-    global N
-    for _ in range(50):
-        _N = random.randint(1,5)
-        N = _N
-        d = random.randint(1,2)
-        pre_ks = tuple( random.randint(1,5) for _ in range(d) )
-        pre_vs = tuple( random.randint(0,N-1) for _ in range(d) )
-        k = random.randint(1,5)*2
-        vals = []
-        for j in (0..d):
-            ks = pre_ks[:j] + (k,) + pre_ks[j:]
-            vs = pre_vs[:j] + (0,) + pre_vs[j:]
-            us = tuple( sum(vs[i:]) for i in range(d+1) )
-            ls = tuple(k-1 for k in ks)
-            print(f"{ks=}, {vs=}, {us=}")
-            vals.append( Diter(us = us, ls=ls) )
-        val = sum(vals)
-
-        print(f"{N=}, {d=}, {pre_ks=}, {pre_vs=}, {k=}, {val==0}")
-        if val!=0:
-            print(vals)
-            print(val)
-            assert False
-                
-                
+                assert dim1==dim2                
 
 def test():
-    for N in (2..3000):
+    for N in (200..3000):
         dim = calc_dimension_with_sqlite(N=N, depth = 2, weight=2)
         print(N, dim)
 
 def test2():
-    for N in (70..3000):
+    for N in (200..3000):
         import time
         start = time.time()
-        dim_dense = calc_dimension_quick(_N=N, depth = 2, weight=2, sparse = False)
+        dim_sparse = calc_dimension(_N=N, depth = 2, weight=2, sparse = True)
         print(time.time()-start)
-        start = time.time()
-        dim_sparse = calc_dimension_quick(_N=N, depth = 2, weight=2, sparse = True)
-        print(time.time()-start)
-        assert dim_dense==dim_sparse
 
         print(N, dim_sparse)
-
-def test3():
-    global N
-    for depth in (2..8):
-        for weight in (depth..20):
-            for _N in (1..500):
-                N = _N
-                if len(generate_all_us(N, depth)) * len(generate_all_ls(depth, weight) )>=10000000:
-                    break
-                start = time.time()
-                dim1 = calc_dimension_quick(_N=N, depth=depth, weight=weight)
-                t1 = time.time() - start
-                start = time.time()
-                dim2 = calc_dimension_quick2(_N = N, depth = depth, weight = weight)
-                t2 = time.time() - start
-                print(f"{depth=}, {weight=}, {N=}, {dim1=}, {dim2=}, {t1=}, {t2=}")
-                assert dim1==dim2
 
 #make_sqlite_table()
 # test_harmonic_relation()
 test2()
+#test_Ydim()
 print("Finish!")
