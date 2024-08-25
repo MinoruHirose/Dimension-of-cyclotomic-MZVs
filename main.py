@@ -200,7 +200,8 @@ def calc_dimension_with_sqlite(N, depth, weight):
     If the data is already in the database, return the stored dimension.
     Otherwise, calculate the dimension, store it in the database, and return it.
     """
-    
+
+    make_sqlite_table()
     conn = sqlite3.connect('dimensions.db')
     cur = conn.cursor()
 
@@ -274,19 +275,22 @@ def test2():
 
         print(N, dim_sparse)
 
-# pararrel computation
-@parallel(ncpus = 8)
-def f(N, depth, weight):
-    dim = calc_dimension_with_sqlite(N, depth, weight)
-    print(f"{depth=}, {weight=}, {N=}, {dim=}")
-    return dim
+def main_parallel():
+    @parallel(ncpus = 8)
+    def f(N, depth, weight):
+        dim = calc_dimension_with_sqlite(N, depth, weight)
+        print(f"{depth=}, {weight=}, {N=}, {dim=}")
+        return dim
+    
+    ins = [(N,2,2) for N in (1..100)]
+    res = list(f(ins))
 
 def main():
-    start = time.time()
-    ins = [(N,2,2) for N in (224..1000)]
-    res = list(f(ins))
-    print(time.time()-start)
-
+    for N in (1..100):
+        depth = 2
+        weight = 2
+        dim = calc_dimension_with_sqlite(N = N, depth = depth, weight = weight)
+        print(f"{depth=}, {weight=}, {N=}, {dim=}")
 
 main()
 print("Finish!")
