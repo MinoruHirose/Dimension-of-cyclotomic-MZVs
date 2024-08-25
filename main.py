@@ -1,16 +1,35 @@
-# This source code is intended to be executed in a SageMath Jupyter notebook environment.
-# It utilizes specific features and functions available within SageMath that may not
-# be compatible with standard Python or other programming environments.
-# 
-# To run this code:
-# 1. Ensure you have SageMath installed on your system.
-# 2. Open a Jupyter notebook using SageMath.
-# 3. Copy the contents of this file into a cell in the Jupyter notebook.
-# 4. Execute the cell to see the results.
-#
-# For more information about SageMath and how to set up a Jupyter notebook with SageMath,
-# please visit: https://www.sagemath.org
+"""
+This source code is intended to be executed in a SageMath Jupyter notebook environment.
+It utilizes specific features and functions available within SageMath that may not
+be compatible with standard Python or other programming environments.
 
+To run this code:
+1. Ensure you have SageMath installed on your system.
+2. Open a Jupyter notebook using SageMath.
+3. Copy the contents of this file into a cell in the Jupyter notebook.
+4. Execute the cell to see the results.
+
+For more information about SageMath and how to set up a Jupyter notebook with SageMath,
+please visit: https://www.sagemath.org
+
+This source code is intended to be executed in a SageMath Jupyter notebook environment.  
+It utilizes specific features and functions available within SageMath that may not be compatible with standard Python or other programming environments.
+
+To run this code:
+1. Ensure you have SageMath installed on your system.
+2. Open a Jupyter notebook using SageMath.
+3. Copy the contents of this file into a cell in the Jupyter notebook.
+4. Execute the cell to see the results.
+
+Additional Information:
+- This program saves the calculation results in a `dimensions.db` file within the current folder. When recalculating with the same `N`, `depth`, and `weight`, the results will be returned immediately.
+- If the `dimensions.db` file is not found, it will be created during execution.
+- The `dimensions.db` file in the repository already contains results calculated locally by the author of this program.
+
+For more information about SageMath and how to set up a Jupyter notebook with SageMath, please visit: https://www.sagemath.org
+
+
+"""
 import sqlite3, time, os
 
 
